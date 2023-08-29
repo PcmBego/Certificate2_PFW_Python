@@ -5,6 +5,7 @@ from RPA.Tables import Tables   # Tables모듈 안 Tables클래스 사용
 import time
 from RPA.PDF import PDF # PDF모듈 안 PDF클래스 사용
 from RPA.Archive import Archive
+from RPA.Assistant import Assistant
 
 #? 전역변수(상수) 설정
 OUTPUT_PATH = "output"
@@ -18,15 +19,17 @@ def order_robots_from_RobotSpareBin():
     - Embeds the screenshot of the robot to the PDF receipt.
     - Creates ZIP archive of the receipts and the images.
     """
-    open_robot_order_website()
-    orders = get_orders()
-    for row in orders:  # row: dict
-        close_annoying_modal()
-        fill_the_form(row)
-        download_and_store_the_order_receipt_as_pdf(row)
-        order_another_robot()
-    archive_receipts()
-    #? Teardown: it will be automatically closed when the task finishes
+    url = user_input_task()
+    if url != "Fail":
+        open_robot_order_website()
+        orders = get_orders()
+        for row in orders:  # row: dict
+            close_annoying_modal()
+            fill_the_form(row)
+            download_and_store_the_order_receipt_as_pdf(row)
+            order_another_robot()
+        archive_receipts()
+        #? Teardown: it will be automatically closed when the task finishes
 
 
 def browser_setting():
@@ -187,3 +190,18 @@ def archive_receipts():
     # missing 1 required positional argument: 'self'
     lib = Archive()
     lib.archive_folder_with_zip(folder=folder, archive_name=archive_name)
+
+def user_input_task():
+    assistant = Assistant()
+    #// assistant.add_icon("warning")
+    assistant.add_heading("Input from user")
+    assistant.add_text_input("text_input", label="URL", placeholder="Please enter URL")
+    assistant.add_submit_buttons(buttons="Submit, Cancel", default="Submit")
+    assistant.add_text("https://robotsparebinindustries.com/#/robot-order", size="small")
+    result = assistant.run_dialog()
+    try:
+        url = result.text_input # == result["text_input"]
+    except  AttributeError:
+        url = "Fail"
+
+    return url
