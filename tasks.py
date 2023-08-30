@@ -7,6 +7,8 @@ from RPA.PDF import PDF # PDF모듈 안 PDF클래스 사용
 from RPA.Archive import Archive
 from RPA.Assistant import Assistant
 import shutil
+import os
+import getpass
 
 #? 전역변수(상수) 설정
 OUTPUT_PATH = "output"
@@ -58,7 +60,10 @@ def get_orders():
     download_the_orders_file()
 
     table = Tables()    # 인스턴스화
-    orders = table.read_table_from_csv(path=OUTPUT_PATH + "/" + "orders.csv")   # @keyword("Read table from CSV")
+    file_name = "orders.csv"
+    src_path = os.path.join(OUTPUT_PATH, file_name)
+    #// orders = table.read_table_from_csv(path=OUTPUT_PATH + "/" + "orders.csv")   # @keyword("Read table from CSV")
+    orders = table.read_table_from_csv(path=src_path)   # @keyword("Read table from CSV")
     return orders
 
 def close_annoying_modal():
@@ -128,7 +133,8 @@ def store_receipt_as_pdf(order_number):
     # Ensure a unique name
     file_name = "0" + order_number + "_order_receipt.pdf"
     dir_name = "order_receipt"
-    file_path = OUTPUT_PATH + "/" + dir_name + "/" + file_name
+    #// file_path = OUTPUT_PATH + "/" + dir_name + "/" + file_name
+    file_path = os.path.join(OUTPUT_PATH, dir_name, file_name)
     pdf = PDF()
     #! 메서드 인식이 되지 않는다!
     pdf.html_to_pdf(order_receipt_html, file_path)  # make automatically "order_receipt" dir
@@ -142,7 +148,8 @@ def screenshot_robot(order_number):
     # Ensure a unique name
     file_name = "0" + order_number + "_robot_preview_image.png"
     dir_name = "robot_preview_image"
-    file_path = OUTPUT_PATH + "/" + dir_name + "/" + file_name
+    # file_path = OUTPUT_PATH + "/" + dir_name + "/" + file_name
+    file_path = os.path.join(OUTPUT_PATH, dir_name, file_name)
 
     page = browser.page()
     element = page.query_selector(selector="#robot-preview-image")
@@ -160,7 +167,8 @@ def embed_screenshot_to_receipt(order_number, screenshot, pdf_file):
     # Ensure a unique name
     file_name = "0" + order_number + "_result.pdf"
     dir_name = "result"
-    file_path = OUTPUT_PATH + "/" + dir_name + "/" + file_name
+    #//file_path = OUTPUT_PATH + "/" + dir_name + "/" + file_name
+    file_path = os.path.join(OUTPUT_PATH, dir_name, file_name)
 
     pdf = PDF()
     #! 메서드 인식이 되지 않는다!
@@ -184,9 +192,11 @@ def archive_receipts():
     '''
     Create a ZIP file of receipt PDF files
     '''
-    folder = OUTPUT_PATH + "/" + "result"
+    #// folder = OUTPUT_PATH + "/" + "result"
+    folder = os.path.join(OUTPUT_PATH, "result")
     file_name = "result.zip"
-    archive_name = OUTPUT_PATH + "/" + file_name
+    #// archive_name = OUTPUT_PATH + "/" + file_name
+    archive_name = os.path.join(OUTPUT_PATH, file_name)
 
     #! 인스턴스화 하지않으면 발생하는 에러
     # missing 1 required positional argument: 'self'
@@ -218,5 +228,13 @@ def copy_output_dir_to_local():
         편집기를 통한 프로젝트를 직접 실행하는 환경에서는 불필요
     """
     src_path = OUTPUT_PATH
-    dst_path = r"C:\Users\min88\Desktop\Output_Test"
+    #* 1. C:\Users\min88
+    user_path = os.path.expanduser('~')
+    #* 2. Certificate2_PFW
+    current_path = os.getcwd()
+    temp_list = current_path.split('\\')
+    prject_name = temp_list[-1]
+    #* 3. C:\Users\min88\Desktop\Certificate2_PFW_output
+    dst_path = os.path.join(user_path, "Desktop", prject_name + "_output")
+    # os.makedirs() 기능 포함
     shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
