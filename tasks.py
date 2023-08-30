@@ -6,6 +6,7 @@ import time
 from RPA.PDF import PDF # PDF모듈 안 PDF클래스 사용
 from RPA.Archive import Archive
 from RPA.Assistant import Assistant
+import shutil
 
 #? 전역변수(상수) 설정
 OUTPUT_PATH = "output"
@@ -30,6 +31,7 @@ def order_robots_from_RobotSpareBin():
             order_another_robot()
         archive_receipts()
         #? Teardown: it will be automatically closed when the task finishes
+        copy_output_dir_to_local()
 
 
 def browser_setting():
@@ -205,3 +207,16 @@ def user_input_task():
         url = "Fail"
 
     return url
+
+def copy_output_dir_to_local():
+    """
+    .. Assistant 
+        로컬 PC를 사용하는 Assistant도 Temp경로로 가상의 환경을 만들어 실행 후 제거하는것으로 보인다
+        (Control room - Cloude Worker 방법과 유사)
+        때문에 output폴더에 존재하는 결과물이 유지되지 않는다 -> 웹상(Control room)의 artifact로는 존재
+
+        편집기를 통한 프로젝트를 직접 실행하는 환경에서는 불필요
+    """
+    src_path = OUTPUT_PATH
+    dst_path = r"C:\Users\min88\Desktop\Output_Test"
+    shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
